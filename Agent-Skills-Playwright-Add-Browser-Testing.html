@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10251f">
+  <title>Agent Skills and Playwright MCP | Add Browser Testing</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172722;
+      --muted: #50635c;
+      --paper: #f1f5ee;
+      --panel: #fffefa;
+      --line: #d7e0d7;
+      --forest: #145746;
+      --mint: #dcefe5;
+      --coral: #d85842;
+      --coral-pale: #fae7e0;
+      --blue: #286883;
+      --blue-pale: #e3eff4;
+      --gold: #a26d12;
+      --gold-pale: #f4edda;
+      --dark: #10251f;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body { background: var(--dark); color: var(--ink); font-family: "Aptos", "Trebuchet MS", sans-serif; overflow: hidden; }
+    button { font: inherit; }
+    .deck { height: 100%; position: relative; }
+    .progress { background: #29443a; height: 4px; inset: 0 0 auto; position: absolute; z-index: 4; }
+    .progress span { background: var(--coral); display: block; height: 100%; transition: width 240ms ease; width: 16.67%; }
+    .slides { height: 100%; }
+    .slide {
+      align-items: center;
+      background: radial-gradient(ellipse at 92% 10%, rgba(20,87,70,.11), transparent 30%), linear-gradient(135deg, var(--paper), #eaf0e8);
+      display: none;
+      height: 100%;
+      overflow: auto;
+      padding: 48px clamp(24px, 6vw, 92px) 86px;
+      position: relative;
+    }
+    .slide.active { display: flex; }
+    .slide::after { border: 1px solid rgba(23,39,34,.08); border-radius: 50%; content: ""; height: 340px; pointer-events: none; position: absolute; right: -130px; top: -160px; width: 340px; }
+    .content { margin: auto; max-width: 1160px; position: relative; width: 100%; z-index: 1; }
+    .eyebrow { align-items: center; color: var(--forest); display: flex; font-size: 13px; font-weight: 800; gap: 10px; text-transform: uppercase; }
+    .eyebrow::before { background: var(--coral); content: ""; height: 3px; width: 28px; }
+    h1, h2 { font-family: Georgia, "Times New Roman", serif; letter-spacing: 0; }
+    h1 { font-size: clamp(42px, 6vw, 78px); line-height: 1.02; margin: 22px 0; max-width: 920px; }
+    h2 { font-size: clamp(36px, 4vw, 54px); line-height: 1.05; margin: 18px 0 12px; }
+    h3 { font-size: 18px; margin: 0 0 10px; }
+    p { color: var(--muted); line-height: 1.55; margin: 0 0 12px; }
+    .lead { font-size: 20px; max-width: 790px; }
+    .title-slide { background: var(--dark); color: #f5f4e9; }
+    .title-slide::before { background: linear-gradient(135deg, transparent 46%, rgba(216,88,66,.92) 46%, rgba(216,88,66,.92) 47%, transparent 47%); content: ""; inset: 0; opacity: .8; pointer-events: none; position: absolute; }
+    .title-slide::after { border-color: rgba(241,245,238,.18); height: 540px; right: -80px; top: auto; bottom: -260px; width: 540px; }
+    .title-slide .eyebrow { color: #8ed1b4; }
+    .title-slide h1 { max-width: 950px; }
+    .title-slide p { color: #c5d0ca; }
+    .title-meta { border-left: 3px solid var(--coral); margin-top: 34px; padding-left: 16px; }
+    .agenda { border-collapse: collapse; color: #f5f4e9; text-align: left; width: 100%; }
+    .agenda th, .agenda td { border-bottom: 1px solid rgba(241,245,238,.2); padding: 10px 12px; vertical-align: top; }
+    .agenda th { color: #8ed1b4; font-size: 12px; text-transform: uppercase; }
+    .agenda td { font-size: 15px; }
+    .agenda td:first-child { font-weight: 800; white-space: nowrap; }
+    .section-head { align-items: end; display: flex; gap: 26px; justify-content: space-between; margin-bottom: 24px; }
+    .section-index { color: rgba(23,39,34,.12); font-family: Georgia, serif; font-size: 96px; line-height: .8; }
+    .grid { display: grid; gap: 14px; }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 5px; padding: 21px; }
+    .panel p:last-child, .panel ul:last-child, .panel ol:last-child { margin-bottom: 0; }
+    .panel ul, .panel ol { color: var(--muted); line-height: 1.5; margin: 0; padding-left: 20px; }
+    .panel li + li { margin-top: 7px; }
+    .panel.forest { border-top: 4px solid var(--forest); }
+    .panel.coral { border-top: 4px solid var(--coral); }
+    .panel.blue { border-top: 4px solid var(--blue); }
+    .panel.gold { border-top: 4px solid var(--gold); }
+    .label { color: var(--muted); font-size: 12px; font-weight: 800; margin-bottom: 10px; text-transform: uppercase; }
+    .callout { align-items: flex-start; background: var(--dark); border-radius: 5px; color: #f5f4e9; display: flex; gap: 13px; line-height: 1.5; margin-top: 15px; padding: 16px 19px; }
+    .callout strong { color: #fff; }
+    .callout p { color: #c5d0ca; margin: 0; }
+    .mark { color: #8ed1b4; font-size: 19px; font-weight: 900; }
+    .code { background: #142a23; border: 1px solid #335347; border-radius: 4px; color: #e8eee8; font: 13px/1.6 Consolas, "Courier New", monospace; overflow: auto; padding: 17px 19px; white-space: pre-wrap; }
+    .code .key { color: #9bd5bb; }
+    .code .comment { color: #a2b3aa; }
+    .steps { counter-reset: step; display: grid; gap: 10px; }
+    .step { align-items: flex-start; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; display: flex; gap: 12px; padding: 13px 15px; }
+    .step::before { background: var(--mint); border-radius: 50%; color: var(--forest); content: counter(step); counter-increment: step; flex: 0 0 27px; font-size: 13px; font-weight: 900; height: 27px; line-height: 27px; text-align: center; }
+    .step p { margin: 0; }
+    .step strong { color: var(--ink); }
+    .prompt { background: var(--blue-pale); border-left: 4px solid var(--blue); border-radius: 3px; color: #1c4d61; font-size: 18px; line-height: 1.5; margin: 15px 0; padding: 17px 20px; }
+    .source { font-size: 12px; margin: 16px 0 0; }
+    .source a { color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .controls { align-items: center; background: rgba(16,37,31,.97); bottom: 0; color: #f5f4e9; display: flex; gap: 12px; justify-content: center; left: 0; padding: 13px 18px; position: absolute; right: 0; z-index: 5; }
+    .controls button { background: transparent; border: 1px solid #587064; border-radius: 3px; color: #f5f4e9; cursor: pointer; min-height: 38px; min-width: 42px; }
+    .controls button:hover:not(:disabled), .controls button:focus-visible { background: #29443a; border-color: #8ed1b4; outline: none; }
+    .controls button:disabled { cursor: default; opacity: .4; }
+    .counter { color: #c5d0ca; font-variant-numeric: tabular-nums; min-width: 58px; text-align: center; }
+    .dots { display: flex; gap: 7px; }
+    .dots button { border: 0; border-radius: 50%; min-height: 9px; min-width: 9px; padding: 0; }
+    .dots button[aria-current="true"] { background: #8ed1b4; }
+    .dots button[aria-current="false"] { background: #587064; }
+    .hint { color: #aebdb4; font-size: 12px; }
+    @media (max-width: 760px) {
+      .slide { align-items: flex-start; padding: 36px 20px 82px; }
+      .slide::after { display: none; }
+      .slide.active { display: block; }
+      .content { margin: 0 auto; }
+      .section-head { align-items: flex-start; }
+      .section-index { display: none; }
+      .grid.two, .grid.three { grid-template-columns: 1fr; }
+      .hint { display: none; }
+      .agenda thead { display: none; }
+      .agenda, .agenda tbody, .agenda tr, .agenda td { display: block; width: 100%; }
+      .agenda tr { border-bottom: 1px solid rgba(241,245,238,.2); padding: 8px 0; }
+      .agenda td { border: 0; padding: 4px 0; }
+      .agenda td::before { color: #8ed1b4; content: attr(data-label); display: block; font-size: 10px; font-weight: 800; margin-bottom: 2px; text-transform: uppercase; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+    @media print {
+      body { background: #fff; overflow: visible; }
+      .deck, .slides { height: auto; }
+      .progress, .controls { display: none; }
+      .slide, .slide.active { break-after: page; display: flex !important; height: 100vh; overflow: hidden; padding: 35px; }
+      .slide:last-child { break-after: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" aria-label="Agent Skills and browser testing presentation">
+    <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+    <div class="slides">
+      <section class="slide title-slide active" aria-label="Title slide">
+        <div class="content">
+          <div class="eyebrow">Two modules · Two hands-on scenarios</div>
+          <h1>Customize Copilot.<br>Add browser testing.</h1>
+          <p class="lead">Two independent modules for customizing Copilot with skills and adding browser-based end-to-end tests.</p>
+          <div class="title-meta"><table class="agenda" aria-label="Modules, scenarios, and key features"><thead><tr><th>Module</th><th>Real-World Scenario</th><th>Key Features</th></tr></thead><tbody><tr><td data-label="Module">Agent Skills</td><td data-label="Real-World Scenario">“Customize Copilot with skills”</td><td data-label="Key Features">Agent Skills</td></tr><tr><td data-label="Module">End-to-End Tests</td><td data-label="Real-World Scenario">“Add browser testing”</td><td data-label="Key Features">MCP Playwright</td></tr></tbody></table></div>
+        </div>
+      </section>
+
+      <section class="slide" aria-label="Agent Skills">
+        <div class="content">
+          <div class="eyebrow">MODULE 1 · AGENT SKILLS</div>
+          <div class="section-head"><div><h2>Customize Copilot<br>with skills.</h2><p class="lead">Package team know-how so Copilot can discover and follow a specialized workflow when the task calls for it.</p></div><div class="section-index">01</div></div>
+          <div class="grid three">
+            <article class="panel forest"><div class="label">Definition</div><h3>A small folder with a clear job</h3><p>A skill centers on a <code>SKILL.md</code> file. YAML frontmatter gives it a name and a description of when it applies; the Markdown body contains the workflow. Scripts, templates, and examples can support it.</p></article>
+            <article class="panel coral"><div class="label">Problem it solves</div><h3>Stop repeating tribal knowledge</h3><p>Without a skill, people re-explain the project’s testing, deployment, or documentation process in each session. A skill makes that know-how reusable and discoverable.</p></article>
+            <article class="panel blue"><div class="label">Skills vs. instructions</div><h3>Standards versus tasks</h3><p>Instructions describe standards to follow, such as naming or formatting. Skills describe tasks to perform, such as running a browser-test workflow or generating release notes.</p></article>
+          </div>
+          <div class="callout"><span class="mark">i</span><p><strong>Module scenario:</strong> Customize Copilot with a reusable release-notes skill. The host matches a request against skill metadata and loads the workflow when relevant; the author defines the workflow.</p></div>
+          <p class="source">Sources: <a href="https://code.visualstudio.com/docs/agent-customization/agent-skills">Agent Skills in VS Code</a> · <a href="https://docs.github.com/en/copilot/concepts/agents/about-agent-skills">GitHub Copilot Agent Skills</a></p>
+        </div>
+      </section>
+
+      <section class="slide" aria-label="Build and use a skill">
+        <div class="content">
+          <div class="eyebrow">MODULE 1 · SCENARIO · CUSTOMIZE COPILOT WITH SKILLS</div>
+          <div class="section-head"><div><h2>Teach Copilot<br>your release-note process.</h2><p class="lead">Create a focused skill and try it on a realistic task.</p></div><div class="section-index">02</div></div>
+          <div class="grid two">
+            <article class="panel forest"><div class="label">Project layout</div><h3>Keep the workflow with the project</h3><div class="code"><span class="comment"># Project skill location</span>
+.github/skills/
+└── release-notes/
+    └── SKILL.md
+
+<span class="comment"># SKILL.md</span>
+---
+<span class="key">name:</span> release-notes
+<span class="key">description:</span> Draft release notes from merged PRs
+  using our team format. Use when asked to prepare
+  or update release notes.
+---
+
+<span class="comment"># Skill instructions</span>
+1. Review merged PR titles and labels.
+2. Group changes by user impact.
+3. Follow the team release-note template.
+4. Flag unclear changes; do not invent details.</div></article>
+            <article class="panel gold"><div class="label">Demo</div><h3>Create it, invoke it, inspect the result</h3><div class="steps"><div class="step"><p><strong>1 · Create:</strong> Add <code>.github/skills/release-notes/SKILL.md</code>; keep the folder name and frontmatter <code>name</code> aligned.</p></div><div class="step"><p><strong>2 · Customize:</strong> Describe the team’s output format, source material, and rules for missing information.</p></div><div class="step"><p><strong>3 · Invoke:</strong> In a fresh Copilot chat, ask: “Draft release notes from the merged PRs for this release.”</p></div><div class="step"><p><strong>4 · Review:</strong> Confirm Copilot followed the skill and did not invent details. Refine the description or workflow if discovery or output is off.</p></div></div></article>
+          </div>
+          <div class="callout"><span class="mark">!</span><p><strong>Module 1 outcome:</strong> The team leaves with a project-specific skill that customizes how Copilot handles one repeated task. Instructions remain the place for always-on standards.</p></div>
+          <p class="source">Example workflow drawn from the workspace Agent Skills and browser-testing training materials.</p>
+        </div>
+      </section>
+
+      <section class="slide" aria-label="Playwright MCP">
+        <div class="content">
+          <div class="eyebrow">MODULE 2 · END-TO-END TESTS</div>
+          <div class="section-head"><div><h2>Add browser testing.</h2><p class="lead">Use Playwright MCP to inspect and exercise a real browser, then keep the end-to-end check as a reusable test.</p></div><div class="section-index">03</div></div>
+          <div class="grid three">
+            <article class="panel blue"><div class="label">Definition</div><h3>Browser tools over MCP</h3><p>The server exposes tools to navigate, inspect page content, click, type, fill fields, and capture screenshots in a real browser.</p></article>
+            <article class="panel coral"><div class="label">Problem it solves</div><h3>Build success is not user success</h3><p>Compilation and unit tests cannot prove the interface works as a user experiences it. Browser interaction can verify a journey and reveal visible regressions.</p></article>
+            <article class="panel forest"><div class="label">How it sees</div><h3>Structured page state</h3><p>Accessibility-oriented snapshots expose controls and labels so the agent can act on page structure instead of relying only on pixels.</p></article>
+          </div>
+          <div class="grid two" style="margin-top:14px;">
+            <article class="panel"><div class="label">Local server configuration example</div><div class="code">// .vscode/mcp.json
+{
+  "servers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    }
+  }
+}</div></article>
+            <article class="panel gold"><div class="label">Key feature · Observe · Act · Verify</div><h3>Browser exploration plus durable coverage</h3><ul><li><strong>Observe:</strong> inspect the current page and controls.</li><li><strong>Act:</strong> navigate and interact as a user would.</li><li><strong>Verify:</strong> check the resulting state and report evidence.</li><li>Save a repeatable Playwright test and run it in CI.</li></ul></article>
+          </div>
+          <p class="source">Sources: <a href="https://github.com/microsoft/playwright-mcp">Microsoft Playwright MCP</a> · <a href="https://code.visualstudio.com/docs/copilot/customization/mcp-servers">MCP servers in VS Code</a>. For shared configurations, pin and review the server version according to team policy.</p>
+        </div>
+      </section>
+
+      <section class="slide" aria-label="Add browser testing scenario">
+        <div class="content">
+          <div class="eyebrow">MODULE 2 · SCENARIO · ADD BROWSER TESTING</div>
+          <div class="section-head"><div><h2>Turn a user journey<br>into a repeatable check.</h2><p class="lead">Add end-to-end coverage for the local app’s contact form, then verify the journey in a real browser.</p></div><div class="section-index">04</div></div>
+          <div class="grid two">
+            <article class="panel forest"><div class="label">Ask Copilot</div><h3>Add a browser test to this project</h3><div class="prompt">“Inspect this project’s existing test setup. Add a Playwright end-to-end test for the contact form: submit valid synthetic data and verify the success state. Use the local app only; do not send external requests.”</div><p>This is a standalone End-to-End Tests module; it does not depend on the Agent Skills module. Use a demo branch and inspect the repository before changing dependencies or configuration.</p></article>
+            <article class="panel coral"><div class="label">Live walkthrough</div><h3>Inspect, add, run, verify</h3><div class="steps"><div class="step"><p><strong>Inspect:</strong> Confirm the app starts locally and identify its existing test framework and form controls.</p></div><div class="step"><p><strong>Add:</strong> Create or update a Playwright test using the project’s conventions. Prefer accessible labels and roles over fragile selectors.</p></div><div class="step"><p><strong>Run:</strong> Start the app and execute the test. Use Playwright MCP to inspect and exercise the form if setup or failures need debugging.</p></div><div class="step"><p><strong>Verify:</strong> Check the success message and test result; inspect any failure in the browser rather than guessing from source code.</p></div></div></article>
+          </div>
+          <div class="callout"><span class="mark">!</span><p><strong>Demo safety:</strong> Use a local or approved test environment and synthetic data. Avoid real accounts, production submissions, payments, external side effects, and sensitive information.</p></div>
+          <p class="source">Scenario based on the workspace Playwright MCP demo flow. Adjust the prompt to match the app and its existing test commands.</p>
+        </div>
+      </section>
+
+      <section class="slide" aria-label="Evidence and team handoff">
+        <div class="content">
+          <div class="eyebrow">05 · Module outcomes</div>
+          <div class="section-head"><div><h2>Two modules.<br>Two clear outcomes.</h2><p class="lead">Each module stands on its own and leaves the team with a concrete next step.</p></div><div class="section-index">05</div></div>
+          <div class="grid three">
+            <article class="panel forest"><div class="label">Module 1 · Agent Skills</div><h3>Customize Copilot with skills</h3><p>Create a reusable release-notes skill, invoke it in Copilot, and check that its instructions shape the result.</p></article>
+            <article class="panel blue"><div class="label">Module 2 · MCP Playwright</div><h3>Add browser testing</h3><p>Use Playwright MCP to inspect and verify a local form journey, then save an end-to-end test for repeatable runs.</p></article>
+            <article class="panel gold"><div class="label">For both modules</div><h3>Review evidence before relying on it</h3><p>Inspect generated content and tests, rerun checks, and keep normal human approval before changes are merged.</p></article>
+          </div>
+          <div class="callout"><span class="mark">?</span><p><strong>Ask the team:</strong> Which repeated UI check would benefit most from a shared skill, and what user journey should we protect with an end-to-end test?</p></div>
+          <p class="source">References: <a href="https://code.visualstudio.com/docs/agent-customization/agent-skills">Agent Skills</a> · <a href="https://github.com/microsoft/playwright-mcp">Playwright MCP</a> · <a href="https://code.visualstudio.com/docs/copilot/customization/mcp-servers">MCP server setup</a></p>
+        </div>
+      </section>
+    </div>
+    <nav class="controls" aria-label="Slide controls">
+      <button id="previous" type="button" aria-label="Previous slide" title="Previous slide">&#8592;</button>
+      <span class="counter" id="counter" aria-live="polite">1 / 6</span>
+      <div class="dots" id="dots" aria-label="Choose a slide"></div>
+      <button id="next" type="button" aria-label="Next slide" title="Next slide">&#8594;</button>
+      <span class="hint">Arrow keys to navigate · Print for handouts</span>
+    </nav>
+  </main>
+  <script>
+    (() => {
+      const slides = [...document.querySelectorAll('.slide')];
+      const previous = document.getElementById('previous');
+      const next = document.getElementById('next');
+      const counter = document.getElementById('counter');
+      const progressBar = document.getElementById('progressBar');
+      const dots = document.getElementById('dots');
+      let current = 0;
+
+      slides.forEach((slide, index) => {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.setAttribute('aria-label', `Go to slide ${index + 1}`);
+        dot.addEventListener('click', () => show(index));
+        dots.append(dot);
+      });
+
+      function show(index) {
+        current = Math.max(0, Math.min(slides.length - 1, index));
+        slides.forEach((slide, slideIndex) => {
+          slide.classList.toggle('active', slideIndex === current);
+          slide.setAttribute('aria-hidden', String(slideIndex !== current));
+        });
+        [...dots.children].forEach((dot, dotIndex) => dot.setAttribute('aria-current', String(dotIndex === current)));
+        counter.textContent = `${current + 1} / ${slides.length}`;
+        progressBar.style.width = `${((current + 1) / slides.length) * 100}%`;
+        previous.disabled = current === 0;
+        next.disabled = current === slides.length - 1;
+      }
+
+      previous.addEventListener('click', () => show(current - 1));
+      next.addEventListener('click', () => show(current + 1));
+      document.addEventListener('keydown', (event) => {
+        if (['ArrowRight', 'PageDown', ' '].includes(event.key)) { event.preventDefault(); show(current + 1); }
+        if (['ArrowLeft', 'PageUp'].includes(event.key)) { event.preventDefault(); show(current - 1); }
+        if (event.key === 'Home') show(0);
+        if (event.key === 'End') show(slides.length - 1);
+      });
+      show(0);
+    })();
+  </script>
+</body>
+</html>
